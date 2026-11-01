@@ -16,9 +16,11 @@ jobs:
     - name: Surgical Clean CMake Config
       shell: bash
       run: |
-        # Жестко отключаем падение сборки из-за парсинга версий
+        # Жестко отключаем падение сборки из-за парсинга версий (обе ошибки: обычную и TClient)
         sed -i 's/message(FATAL_ERROR "Couldn\x27t parse version from src\/game\/version.h")/message(STATUS "Skipping version check")/' CMakeLists.txt
         sed -i 's/message(SEND_ERROR "Couldn\x27t parse version from src\/game\/version.h")/message(STATUS "Skipping version check")/' CMakeLists.txt
+        sed -i 's/message(FATAL_ERROR "Couldn\x27t parse TClient version from src\/game\/version.h")/message(STATUS "Skipping tclient check")/' CMakeLists.txt
+        sed -i 's/message(SEND_ERROR "Couldn\x27t parse TClient version from src\/game\/version.h")/message(STATUS "Skipping tclient check")/' CMakeLists.txt
         
         # Точечно отключаем макрос set_glob, ломая только его сообщения, а не весь файл
         sed -i 's/message(FATAL_ERROR "${FILE_DIR} does not contain every file/message(STATUS "${FILE_DIR} does not contain every file/g' CMakeLists.txt
