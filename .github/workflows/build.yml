@@ -20,15 +20,15 @@ jobs:
         sed -i 's/message(FATAL_ERROR "Couldn\x27t parse version from src\/game\/version.h")/message(STATUS "Skipping version check")/' CMakeLists.txt
         sed -i 's/message(SEND_ERROR "Couldn\x27t parse version from src\/game\/version.h")/message(STATUS "Skipping version check")/' CMakeLists.txt
         
-        # Вырезаем капризную проверку папок set_glob под корень
+        # Вырезаем проверку папок set_glob под корень
         sed -i '/macro(set_glob/,/endmacro()/c\macro(set_glob)\nendmacro()' CMakeLists.txt
         sed -i '/function(set_glob/,/endfunction()/c\function(set_glob)\nendfunction()' CMakeLists.txt
         
-        # РАДИКАЛЬНОЕ РЕШЕНИЕ: Полностью удаляем из CMakeLists.txt кусок кода, который вызывает ошибки на строках 94 и 104
-        # Мы просто находим команду копирования библиотек и команду установки config_retrieve и стираем их из файла
-        sed -i '/file(COPY.*ddnet-libs/,/)/d' CMakeLists.txt
-        sed -i '/install(TARGETS config_retrieve/,/)/d' CMakeLists.txt
-        sed -i 's/install(TARGETS config_retrieve/# install(TARGETS config_retrieve/g' CMakeLists.txt
+        # ПРЯМОЕ УДАЛЕНИЕ СТРОК: Стираем блок с 90 по 110 строчку, где вызываются падения на скриншотах
+        sed -i '90,110d' CMakeLists.txt
+        
+        # На всякий случай убираем упоминания config_retrieve в конце файла
+        sed -i 's/install(TARGETS config_retrieve/# /g' CMakeLists.txt
         
         # Создаем пустые заглушки для файлов, которых не хватает в исходниках KernelNet
         mkdir -p cmake other/versioninfo other/manifest
@@ -57,3 +57,4 @@ jobs:
       with:
         name: KernelNet-Windows-Build
         path: build/Release/
+
