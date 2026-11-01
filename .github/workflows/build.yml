@@ -31,7 +31,7 @@ jobs:
         sed -i 's/message(FATAL_ERROR "Entries only present in.*/message(STATUS "Skipping glob validation")/g' CMakeLists.txt
         sed -i 's/message(SEND_ERROR "Entries only present in.*/message(STATUS "Skipping glob validation")/g' CMakeLists.txt
         
-        # РАДИКАЛЬНОЕ РЕШЕНИЕ: Вырезаем абсолютно любые команды file(COPY) во всем файле, чтобы они не искали старые dll
+        # Вырезаем абсолютно любые команды file(COPY) во всем файле, чтобы они не искали старые dll
         sed -i 's/file(COPY/# file(COPY/g' CMakeLists.txt
         
         # Отключаем Vulkan рендерер
@@ -42,13 +42,14 @@ jobs:
         sed -i 's/cargo_build/# cargo_build/g' CMakeLists.txt
         sed -i 's/Cargo.toml/# Cargo.toml/g' CMakeLists.txt
         
-        # Создаем пустые файлы-заглушки для недостающих компонентов
-        mkdir -p src/game cmake other/versioninfo other/manifest
+        # Создаем пустые файлы-заглушки для недостающих компонентов, включая НОВЫЙ МАНИФЕСТ
+        mkdir -p src/game cmake other/versioninfo other/manifest src/manifest
         echo '#define GAME_VERSION "0.0.1"' > src/game/version.h
         echo '#define GAME_RELEASE_VERSION "0.0.1"' >> src/game/version.h
         touch cmake/checksummed_extra.txt
         touch other/versioninfo/versioninfo.rc.in
         touch other/manifest/client.manifest.in
+        touch src/manifest/client.manifest
         touch cmake/Download_GTest_CMakeLists.txt.in
 
     - name: Install Libraries via Vcpkg
