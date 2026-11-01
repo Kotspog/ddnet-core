@@ -13,7 +13,7 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Clean Hardcoded Errors and Drop Vulkan
+    - name: Surgical Clean CMake Config
       shell: bash
       run: |
         # Жестко отключаем падение сборки из-за парсинга версий (обе ошибки)
@@ -31,12 +31,12 @@ jobs:
         sed -i 's/message(FATAL_ERROR "Entries only present in.*/message(STATUS "Skipping glob validation")/g' CMakeLists.txt
         sed -i 's/message(SEND_ERROR "Entries only present in.*/message(STATUS "Skipping glob validation")/g' CMakeLists.txt
         
-        # РАДИКАЛЬНОЕ РЕШЕНИЕ ДЛЯ VULKAN: Вместо удаления строки, мы просто отключаем сам рендерер Vulkan в настройках
+        # РАДИКАЛЬНОЕ РЕШЕНИЕ: Вырезаем абсолютно любые команды file(COPY) во всем файле, чтобы они не искали старые dll
+        sed -i 's/file(COPY/# file(COPY/g' CMakeLists.txt
+        
+        # Отключаем Vulkan рендерер
         sed -i 's/option(VULKAN ".*" ON)/option(VULKAN "Disable Vulkan" OFF)/g' CMakeLists.txt
         sed -i 's/set(VULKAN ON)/set(VULKAN OFF)/g' CMakeLists.txt
-        # На всякий случай вырезаем саму ломающую команду копирования по ключевым словам
-        sed -i '/ddnet-libs\/vulkan/,/)/d' CMakeLists.txt
-        sed -i '/file(COPY.*vulkan/,/)/d' CMakeLists.txt
         
         # Полностью отключаем интеграцию с Rust/Cargo
         sed -i 's/cargo_build/# cargo_build/g' CMakeLists.txt
@@ -59,7 +59,6 @@ jobs:
       run: |
         mkdir build
         cd build
-        # Отключаем сервер и Vulkan на этапе генерации, оставляем только чистый клиент DDNet
         cmake .. -DSERVER=OFF -DCLIENT=ON -DVULKAN=OFF -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
 
     - name: Build Game
