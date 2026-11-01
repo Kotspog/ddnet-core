@@ -3,7 +3,10 @@
 #ifndef GAME_VERSION_H
 #define GAME_VERSION_H
 
-#include <game/client/components/bestclient/version.h>
+#define GAME_VERSION "0.0.1"
+#define GAME_RELEASE_VERSION "0.0.1"
+#define CLIENT_VERSION "0.0.1"
+
 
 // ddnet
 #define GAME_NAME "DDNet"
