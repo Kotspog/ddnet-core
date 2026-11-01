@@ -13,7 +13,7 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Disable Validation and Create Dummies
+    - name: Disable Validation and Remove Hardcoded Lib Paths
       shell: bash
       run: |
         # Жестко отключаем падение сборки на 22-й строке из-за парсинга version.h
@@ -24,7 +24,10 @@ jobs:
         sed -i '/macro(set_glob/,/endmacro()/c\macro(set_glob)\nendmacro()' CMakeLists.txt
         sed -i '/function(set_glob/,/endfunction()/c\function(set_glob)\nendfunction()' CMakeLists.txt
         
-        # Отключаем сломанную строчку установки config_retrieve в самом конце файла
+        # Вырезаем захардкоженный поиск старых папок ddnet-libs в CMakeLists.txt (строка 94 на скрине)
+        sed -i 's/file(COPY.*ddnet-libs.*)/message(STATUS "Skipping hardcoded copy")/g' CMakeLists.txt
+        
+        # Отключаем сломанную строчку установки config_retrieve в самом конце файла (строка 104 на скрине)
         sed -i 's/install(TARGETS config_retrieve/# install(TARGETS config_retrieve/g' CMakeLists.txt
         
         # Создаем пустые заглушки для файлов, которых не хватает в исходниках KernelNet
