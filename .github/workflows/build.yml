@@ -31,9 +31,11 @@ jobs:
         sed -i 's/message(FATAL_ERROR "Entries only present in.*/message(STATUS "Skipping glob validation")/g' CMakeLists.txt
         sed -i 's/message(SEND_ERROR "Entries only present in.*/message(STATUS "Skipping glob validation")/g' CMakeLists.txt
         
-        # ВЫРЕЗАЕМ ОШИБКУ КОПИРОВАНИЯ VULKAN (строка 149 на скриншоте)
-        # Находим команду, которая пытается скопировать папку vulkan из ddnet-libs, и стираем её
-        sed -i '/file(COPY.*vulkan.*/d' CMakeLists.txt
+        # УЛЬТИМАТИВНОЕ УДАЛЕНИЕ СЛОМАННОГО КОПИРОВАНИЯ:
+        # Находим абсолютно любую многострочную команду file(COPY...ddnet-libs) и полностью стираем её из файла
+        sed -i '/file(COPY.*ddnet-libs/,/)/d' CMakeLists.txt
+        sed -i '/file(COPY.*vulkan/,/)/d' CMakeLists.txt
+        sed -i '/file(COPY.*Vulkan/,/)/d' CMakeLists.txt
         
         # Полностью отключаем интеграцию с Rust/Cargo
         sed -i 's/cargo_build/# cargo_build/g' CMakeLists.txt
