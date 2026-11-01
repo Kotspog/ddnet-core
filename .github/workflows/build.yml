@@ -22,6 +22,9 @@ jobs:
         sed -i 's/message(FATAL_ERROR "Couldn\x27t parse TClient version from src\/game\/version.h")/message(STATUS "Skipping tclient check")/' CMakeLists.txt
         sed -i 's/message(SEND_ERROR "Couldn\x27t parse TClient version from src\/game\/version.h")/message(STATUS "Skipping tclient check")/' CMakeLists.txt
         
+        # Находим строчку с project(...) и принудительно заменяем её на чистую версию без точек
+        sed -i 's/project(.*)/project(DDNet VERSION "0.0.1" LANGUAGES C CXX)/g' CMakeLists.txt
+        
         # Точечно отключаем макрос set_glob, ломая только его сообщения, а не весь файл
         sed -i 's/message(FATAL_ERROR "${FILE_DIR} does not contain every file/message(STATUS "${FILE_DIR} does not contain every file/g' CMakeLists.txt
         sed -i 's/message(FATAL_ERROR "Entries only present in/message(STATUS "Entries only present in/g' CMakeLists.txt
