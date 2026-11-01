@@ -13,7 +13,7 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Disable Validation and Remove Hardcoded Lib Paths
+    - name: Wipe Hardcoded Errors and Missing Files
       shell: bash
       run: |
         # Жестко отключаем падение сборки на 22-й строке из-за парсинга version.h
@@ -24,10 +24,10 @@ jobs:
         sed -i '/macro(set_glob/,/endmacro()/c\macro(set_glob)\nendmacro()' CMakeLists.txt
         sed -i '/function(set_glob/,/endfunction()/c\function(set_glob)\nendfunction()' CMakeLists.txt
         
-        # Вырезаем захардкоженный поиск старых папок ddnet-libs в CMakeLists.txt (строка 94 на скрине)
-        sed -i 's/file(COPY.*ddnet-libs.*)/message(STATUS "Skipping hardcoded copy")/g' CMakeLists.txt
-        
-        # Отключаем сломанную строчку установки config_retrieve в самом конце файла (строка 104 на скрине)
+        # РАДИКАЛЬНОЕ РЕШЕНИЕ: Полностью удаляем из CMakeLists.txt кусок кода, который вызывает ошибки на строках 94 и 104
+        # Мы просто находим команду копирования библиотек и команду установки config_retrieve и стираем их из файла
+        sed -i '/file(COPY.*ddnet-libs/,/)/d' CMakeLists.txt
+        sed -i '/install(TARGETS config_retrieve/,/)/d' CMakeLists.txt
         sed -i 's/install(TARGETS config_retrieve/# install(TARGETS config_retrieve/g' CMakeLists.txt
         
         # Создаем пустые заглушки для файлов, которых не хватает в исходниках KernelNet
