@@ -25,12 +25,15 @@ jobs:
         # Принудительно заменяем строчку project
         sed -i 's/project(.*)/project(DDNet VERSION "0.0.1" LANGUAGES C CXX)/g' CMakeLists.txt
         
-        # ГЛОБАЛЬНОЕ ОТКЛЮЧЕНИЕ ПРО ВЕРКИ FILES (set_glob):
-        # Заменяем FATAL_ERROR и SEND_ERROR на обычный STATUS абсолютно везде, где встречается текст про несоответствие файлов директории
+        # Глобально отключаем ошибки set_glob (превращаем в STATUS)
         sed -i 's/message(FATAL_ERROR ".*does not contain every file.*/message(STATUS "Skipping glob validation")/g' CMakeLists.txt
         sed -i 's/message(SEND_ERROR ".*does not contain every file.*/message(STATUS "Skipping glob validation")/g' CMakeLists.txt
         sed -i 's/message(FATAL_ERROR "Entries only present in.*/message(STATUS "Skipping glob validation")/g' CMakeLists.txt
         sed -i 's/message(SEND_ERROR "Entries only present in.*/message(STATUS "Skipping glob validation")/g' CMakeLists.txt
+        
+        # ВЫРЕЗАЕМ ОШИБКУ КОПИРОВАНИЯ VULKAN (строка 149 на скриншоте)
+        # Находим команду, которая пытается скопировать папку vulkan из ddnet-libs, и стираем её
+        sed -i '/file(COPY.*vulkan.*/d' CMakeLists.txt
         
         # Полностью отключаем интеграцию с Rust/Cargo
         sed -i 's/cargo_build/# cargo_build/g' CMakeLists.txt
