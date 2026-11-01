@@ -1,0 +1,53 @@
+name: Build KernelNet
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Force Rewrite Project Version and Missing Files
+      shell: bash
+      run: |
+        mkdir -p src/game
+        mkdir -p cmake
+        mkdir -p other/versioninfo
+        mkdir -p other/manifest
+        echo '#define GAME_VERSION "0.0.1"' > src/game/version.h
+        echo '#define GAME_RELEASE_VERSION "0.0.1"' >> src/game/version.h
+        touch cmake/checksummed_extra.txt
+        touch other/versioninfo/versioninfo.rc.in
+        touch other/manifest/client.manifest.in
+        touch cmake/Download_GTest_CMakeLists.txt.in
+        sed -i 's/project(.*)/project(DDNet VERSION "0.0.1" LANGUAGES C CXX)/g' CMakeLists.txt
+        sed -i '/macro(set_glob/,/endmacro()/c\macro(set_glob)\nendmacro()' CMakeLists.txt
+        sed -i '/function(set_glob/,/endfunction()/c\function(set_glob)\nendfunction()' CMakeLists.txt
+        sed -i 's/install(TARGETS config_retrieve/# install(TARGETS config_retrieve/g' CMakeLists.txt
+
+    - name: Install Libraries via Vcpkg
+      run: |
+        vcpkg install sdl2 curl freetype libpng openssl sqlite3 wavpack opus opusfile --triplet x64-windows
+
+    - name: Configure CMake
+      run: |
+        mkdir build
+        cd build
+        cmake .. -DSERVER=OFF -DCLIENT=ON -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
+
+    - name: Build Game
+      run: |
+        cd build
+        cmake --build . --config Release
+
+    - name: Upload Finished Game
+      uses: actions/upload-artifact@v4
+      with:
+        name: KernelNet-Windows-Build
+        path: build/Release/
