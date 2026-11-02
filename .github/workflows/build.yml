@@ -16,7 +16,7 @@ jobs:
     - name: Surgical Clean CMake Config
       shell: bash
       run: |
-        # Жестко отключаем падение сборки из-за парсинга версий (обе ошибки)
+        # Жестко отключаем падение сборки из-за парсинга версий
         sed -i 's/message(FATAL_ERROR "Couldn\x27t parse version from src\/game\/version.h")/message(STATUS "Skipping version check")/' CMakeLists.txt
         sed -i 's/message(SEND_ERROR "Couldn\x27t parse version from src\/game\/version.h")/message(STATUS "Skipping version check")/' CMakeLists.txt
         sed -i 's/message(FATAL_ERROR "Couldn\x27t parse TClient version from src\/game\/version.h")/message(STATUS "Skipping tclient check")/' CMakeLists.txt
@@ -38,13 +38,13 @@ jobs:
         sed -i 's/option(VULKAN ".*" ON)/option(VULKAN "Disable Vulkan" OFF)/g' CMakeLists.txt
         sed -i 's/set(VULKAN ON)/set(VULKAN OFF)/g' CMakeLists.txt
         
-        # УЛЬТИМАТИВНОЕ УДАЛЕНИЕ RUST/CARGO: Вырезаем подключение подпроектов rust-bridge под корень
-        sed -i '/rust-bridge/d' CMakeLists.txt
-        sed -i '/rust_engine/d' CMakeLists.txt
+        # БЕЗОПАСНОЕ ОТКЛЮЧЕНИЕ RUST: Просто закомментируем упоминания, не ломая строки
+        sed -i 's/rust-bridge/# rust-bridge/g' CMakeLists.txt
+        sed -i 's/rust_engine/# rust_engine/g' CMakeLists.txt
         sed -i 's/cargo_build/# cargo_build/g' CMakeLists.txt
         sed -i 's/Cargo.toml/# Cargo.toml/g' CMakeLists.txt
         
-        # Создаем пустые файлы-заглушки для недостающих компонентов, включая Cargo.toml
+        # Создаем пустые файлы-заглушки для недостающих компонентов
         mkdir -p src/game cmake other/versioninfo other/manifest src/manifest
         echo '#define GAME_VERSION "0.0.1"' > src/game/version.h
         echo '#define GAME_RELEASE_VERSION "0.0.1"' >> src/game/version.h
