@@ -25,8 +25,8 @@ jobs:
         sed -i 's/message(FATAL_ERROR "${FILE_DIR} does not contain/message(STATUS "Skip/g' CMakeLists.txt
         
         # ХИРУРГИЧЕСКОЕ ИСПРАВЛЕНИЕ КОДА ЦВЕТА:
-        # Вживляем версии функций минимум/максимум как для двух, так и для ТРЁХ аргументов сразу!
         if [ -f src/base/color.h ]; then
+          # 1. Вживляем версии функций минимум/максимум для 2 и 3 аргументов
           cat << 'EOF' > src/base/color_patch.h
           template<typename T> constexpr T minimum(T a, T b) { return a < b ? a : b; }
           template<typename T> constexpr T minimum(T a, T b, T c) { return minimum(minimum(a, b), c); }
@@ -36,6 +36,13 @@ jobs:
           cat src/base/color_patch.h src/base/color.h > src/base/color_temp.h
           mv src/base/color_temp.h src/base/color.h
           rm src/base/color_patch.h
+          
+          # 2. ЗАМЕНЯЕМ СКЛЕИВАЮЩИЙ constexpr НА inline ДЛЯ color_cast ТАК КАК ТИПЫ НЕ LITERAL
+          sed -i 's/constexpr typename color_traits/inline typename color_traits/g' src/base/color.h
+          sed -i 's/constexpr typename color_cast_impl/inline typename color_cast_impl/g' src/base/color.h
+          sed -i 's/constexpr ColorRGBA/inline ColorRGBA/g' src/base/color.h
+          sed -i 's/constexpr ColorHSLA/inline ColorHSLA/g' src/base/color.h
+          sed -i 's/constexpr ColorHSVA/inline ColorHSVA/g' src/base/color.h
         fi
 
         # Заменяем ломающий constexpr на обычный константный const в файлах консоли движка
@@ -73,3 +80,4 @@ jobs:
       with:
         name: KernelNet-Windows-Build
         path: build/Release/
+
