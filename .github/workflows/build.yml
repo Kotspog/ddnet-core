@@ -24,36 +24,18 @@ jobs:
         sed -i 's/message(FATAL_ERROR "Entries only present/message(STATUS "Skip/g' CMakeLists.txt
         sed -i 's/message(FATAL_ERROR "${FILE_DIR} does not contain/message(STATUS "Skip/g' CMakeLists.txt
         
-        # ЧИСТАЯ АВТОНОМНАЯ ПОДМЕНА ФАЙЛА ЦВЕТОВ (без интернета)
-        mkdir -p src/base
-        cat << 'EOF' > src/base/color.h
-        #ifndef BASE_COLOR_H
-        #define BASE_COLOR_H
-        #include <algorithm>
-        template<typename T> constexpr T minimum(T a, T b) { return a < b ? a : b; }
-        template<typename T> constexpr T minimum(T a, T b, T c) { return minimum(minimum(a, b), c); }
-        template<typename T> constexpr T maximum(T a, T b) { return a > b ? a : b; }
-        template<typename T> constexpr T maximum(T a, T b, T c) { return maximum(maximum(a, b), c); }
-        struct ColorRGBA {
-            float r, g, b, a;
-            constexpr ColorRGBA() : r(0), g(0), b(0), a(1) {}
-            constexpr ColorRGBA(float r, float g, float b, float a = 1.0f) : r(r), g(g), b(b), a(a) {}
-            ColorRGBA Multiply(float v) const { return ColorRGBA(r * v, g * v, b * v, a); }
-        };
-        struct ColorHSLA {
-            float h, s, l, a;
-            constexpr ColorHSLA() : h(0), s(0), l(0), a(1) {}
-            constexpr ColorHSLA(float h, float s, float l, float a = 1.0f) : h(h), s(s), l(l), a(a) {}
-        };
-        struct ColorHSVA {
-            float h, s, v, a;
-            constexpr ColorHSVA() : h(0), s(0), v(0), a(1) {}
-            constexpr ColorHSVA(float h, float s, float v, float a = 1.0f) : h(h), s(s), v(v), a(a) {}
-        };
-        template<typename T> inline T color_cast(const ColorRGBA& c) { return T(c.r, c.g, c.b, c.a); }
-        template<> inline ColorRGBA color_cast<{}=ColorRGBA>(const ColorRGBA& c) { return c; }
-        #endif
-        EOF
+        # БЕЗОПАСНОЕ ИСПРАВЛЕНИЕ РОДНОГО КОДА ЦВЕТА:
+        # Вместо удаления файла, мы точечно убираем constexpr только из функций приведения типов, сохраняя все DARKEST_LGT!
+        if [ -f src/base/color.h ]; then
+          sed -i 's/constexpr typename color_traits/inline typename color_traits/g' src/base/color.h
+          sed -i 's/constexpr typename color_cast_impl/inline typename color_cast_impl/g' src/base/color.h
+          sed -i 's/constexpr class/class/g' src/base/color.h
+          sed -i 's/constexpr struct/struct/g' src/base/color.h
+        fi
+
+        # Заменяем ломающий constexpr на обычный константный const в файлах консоли движка
+        find src/engine/ -type f -name "*.h" -o -name "*.cpp" | xargs sed -i 's/constexpr ColorRGBA CONSOLE_DEFAULT_COLOR/const ColorRGBA CONSOLE_DEFAULT_COLOR/g' 2>/dev/null || true
+        find src/engine/ -type f -name "*.h" -o -name "*.cpp" | xargs sed -i 's/constexpr ColorRGBA/const ColorRGBA/g' 2>/dev/null || true
 
         # Создаем все нужные папки-заглушки
         mkdir -p ddnet-libs/vulkan ddnet-libs/png/windows/libs64 src/manifest cmake other/versioninfo other/manifest
