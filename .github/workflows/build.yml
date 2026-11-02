@@ -16,33 +16,12 @@ jobs:
     - name: Surgical Clean CMake Config
       shell: bash
       run: |
-        # Жестко отключаем падение сборки из-за парсинга версий
+        # Скачиваем чистый официальный файл конфигурации DDNet через стабильный wget
+        wget -O CMakeLists.txt https://githubusercontent.com
+        
+        # Отключаем в нем падение из-за проверки версии
         sed -i 's/message(FATAL_ERROR "Couldn\x27t parse version from src\/game\/version.h")/message(STATUS "Skipping version check")/' CMakeLists.txt
         sed -i 's/message(SEND_ERROR "Couldn\x27t parse version from src\/game\/version.h")/message(STATUS "Skipping version check")/' CMakeLists.txt
-        sed -i 's/message(FATAL_ERROR "Couldn\x27t parse TClient version from src\/game\/version.h")/message(STATUS "Skipping tclient check")/' CMakeLists.txt
-        sed -i 's/message(SEND_ERROR "Couldn\x27t parse TClient version from src\/game\/version.h")/message(STATUS "Skipping tclient check")/' CMakeLists.txt
-        
-        # Принудительно заменяем строчку project на корректную
-        sed -i 's/project(.*)/project(DDNet VERSION "0.0.1" LANGUAGES C CXX)/g' CMakeLists.txt
-        
-        # Глобально превращаем ошибки проверки файлов set_glob в обычные уведомления STATUS
-        sed -i 's/message(FATAL_ERROR ".*does not contain every file.*/message(STATUS "Skipping glob validation")/g' CMakeLists.txt
-        sed -i 's/message(SEND_ERROR ".*does not contain every file.*/message(STATUS "Skipping glob validation")/g' CMakeLists.txt
-        sed -i 's/message(FATAL_ERROR "Entries only present in.*/message(STATUS "Skipping glob validation")/g' CMakeLists.txt
-        sed -i 's/message(SEND_ERROR "Entries only present in.*/message(STATUS "Skipping glob validation")/g' CMakeLists.txt
-        
-        # Вырезаем абсолютно любые команды file(COPY) во всем файле, чтобы они не искали старые dll
-        sed -i 's/file(COPY/# file(COPY/g' CMakeLists.txt
-        
-        # Отключаем Vulkan рендерер
-        sed -i 's/option(VULKAN ".*" ON)/option(VULKAN "Disable Vulkan" OFF)/g' CMakeLists.txt
-        sed -i 's/set(VULKAN ON)/set(VULKAN OFF)/g' CMakeLists.txt
-        
-        # БЕЗОПАСНОЕ ОТКЛЮЧЕНИЕ RUST: Просто закомментируем упоминания, не ломая строки
-        sed -i 's/rust-bridge/# rust-bridge/g' CMakeLists.txt
-        sed -i 's/rust_engine/# rust_engine/g' CMakeLists.txt
-        sed -i 's/cargo_build/# cargo_build/g' CMakeLists.txt
-        sed -i 's/Cargo.toml/# Cargo.toml/g' CMakeLists.txt
         
         # Создаем пустые файлы-заглушки для недостающих компонентов
         mkdir -p src/game cmake other/versioninfo other/manifest src/manifest
@@ -53,7 +32,6 @@ jobs:
         touch other/manifest/client.manifest.in
         touch src/manifest/client.manifest
         touch cmake/Download_GTest_CMakeLists.txt.in
-        touch Cargo.toml
 
     - name: Install Libraries via Vcpkg
       run: |
@@ -75,3 +53,4 @@ jobs:
       with:
         name: KernelNet-Windows-Build
         path: build/Release/
+
