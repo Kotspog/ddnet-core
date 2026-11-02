@@ -42,7 +42,7 @@ jobs:
         sed -i 's/cargo_build/# cargo_build/g' CMakeLists.txt
         sed -i 's/Cargo.toml/# Cargo.toml/g' CMakeLists.txt
         
-        # Создаем пустые файлы-заглушки для недостающих компонентов, включая НОВЫЙ МАНИФЕСТ
+        # Создаем пустые файлы-заглушки для недостающих компонентов, включая Cargo.toml
         mkdir -p src/game cmake other/versioninfo other/manifest src/manifest
         echo '#define GAME_VERSION "0.0.1"' > src/game/version.h
         echo '#define GAME_RELEASE_VERSION "0.0.1"' >> src/game/version.h
@@ -51,6 +51,7 @@ jobs:
         touch other/manifest/client.manifest.in
         touch src/manifest/client.manifest
         touch cmake/Download_GTest_CMakeLists.txt.in
+        touch Cargo.toml
 
     - name: Install Libraries via Vcpkg
       run: |
