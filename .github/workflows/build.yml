@@ -16,7 +16,6 @@ jobs:
     - name: Restore and Patch Original Config
       shell: bash
       run: |
-        # Полностью сбрасываем файлы к вашему оригинальному коду игры
         git checkout main -- CMakeLists.txt src/base/color.h 2>/dev/null || true
         
         # Отключаем вредные проверки версий и папок
@@ -25,8 +24,7 @@ jobs:
         sed -i 's/message(FATAL_ERROR "Entries only present/message(STATUS "Skip/g' CMakeLists.txt
         sed -i 's/message(FATAL_ERROR "${FILE_DIR} does not contain/message(STATUS "Skip/g' CMakeLists.txt
         
-        # ГЛОБАЛЬНЫЙ ФИКС ОШИБОК КОДА: Заставляем Visual Studio компилировать старый код без придирок (/permissive-)
-        # Мы просто добавляем флаг отключения строгости в настройки CMakeLists.txt
+        # Заставляем Visual Studio компилировать старый код без жестких придирок (/permissive)
         sed -i '1i add_compile_options(/permissive)' CMakeLists.txt
         sed -i '1i add_definitions(-D_CRT_SECURE_NO_WARNINGS)' CMakeLists.txt
 
@@ -42,7 +40,7 @@ jobs:
 
     - name: Install Libraries via Vcpkg
       run: |
-        vpkg install sdl2 curl freetype libpng openssl sqlite3 wavpack opus opusfile --triplet x64-windows
+        vcpkg install sdl2 curl freetype libpng openssl sqlite3 wavpack opus opusfile --triplet x64-windows
 
     - name: Configure CMake
       run: |
