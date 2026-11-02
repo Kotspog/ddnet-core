@@ -5,7 +5,6 @@ on:
 
 jobs:
   build-windows:
-    # Переключаем сервер на Windows 2022 со старым стабильным компилятором
     runs-on: windows-2022
 
     steps:
@@ -25,6 +24,14 @@ jobs:
         sed -i 's/message(FATAL_ERROR "Entries only present/message(STATUS "Skip/g' CMakeLists.txt
         sed -i 's/message(FATAL_ERROR "${FILE_DIR} does not contain/message(STATUS "Skip/g' CMakeLists.txt
         
+        # ИСПРАВЛЕНИЕ КОДА ИГРЫ: Вживляем в файл color.h исправление для функций minimum/maximum и constexpr
+        if [ -f src/base/color.h ]; then
+          # Добавляем стандартные функции std::min и std::max, чтобы компилятор их увидел
+          sed -i '1i #include <algorithm>\nusing std::min;\nusing std::max;\n#define minimum min\n#define maximum max' src/base/color.h
+          # Убираем капризные constexpr, которые ломали сборку цветов
+          sed -i 's/constexpr //g' src/base/color.h
+        fi
+
         # Создаем все нужные папки-заглушки
         mkdir -p ddnet-libs/vulkan ddnet-libs/png/windows/libs64 src/manifest cmake other/versioninfo other/manifest
         touch ddnet-libs/vulkan/dummy.txt
@@ -43,7 +50,6 @@ jobs:
       run: |
         mkdir build
         cd build
-        # Явно просим использовать Visual Studio 2022 (Visual Studio 17)
         cmake .. -G "Visual Studio 17 2022" -A x64 -DSERVER=OFF -DCLIENT=ON -DVULKAN=OFF -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
 
     - name: Build Game
