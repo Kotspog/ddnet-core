@@ -24,13 +24,22 @@ jobs:
         sed -i 's/message(FATAL_ERROR "Entries only present/message(STATUS "Skip/g' CMakeLists.txt
         sed -i 's/message(FATAL_ERROR "${FILE_DIR} does not contain/message(STATUS "Skip/g' CMakeLists.txt
         
-        # БЕЗОПАСНОЕ ИСПРАВЛЕНИЕ РОДНОГО КОДА ЦВЕТА:
-        # Вместо удаления файла, мы точечно убираем constexpr только из функций приведения типов, сохраняя все DARKEST_LGT!
+        # ТОТАЛЬНОЕ И БЕЗОПАСНОЕ УНИЧТОЖЕНИЕ ОШИБОК В color.h:
         if [ -f src/base/color.h ]; then
-          sed -i 's/constexpr typename color_traits/inline typename color_traits/g' src/base/color.h
-          sed -i 's/constexpr typename color_cast_impl/inline typename color_cast_impl/g' src/base/color.h
-          sed -i 's/constexpr class/class/g' src/base/color.h
-          sed -i 's/constexpr struct/struct/g' src/base/color.h
+          # 1. Заменяем абсолютно все constexpr на обычные inline-команды, чтобы компилятор не придирался
+          sed -i 's/constexpr //g' src/base/color.h
+          
+          # 2. Добавляем в самый верх правильные математические функции для 2 и 3 чисел
+          cat << 'EOF' > src/base/color_patch.h
+          #include <algorithm>
+          template<typename T> inline T minimum(T a, T b) { return a < b ? a : b; }
+          template<typename T> inline T minimum(T a, T b, T c) { return minimum(minimum(a, b), c); }
+          template<typename T> inline T maximum(T a, T b) { return a > b ? a : b; }
+          template<typename T> inline T maximum(T a, T b, T c) { return maximum(maximum(a, b), c); }
+        EOF
+          cat src/base/color_patch.h src/base/color.h > src/base/color_temp.h
+          mv src/base/color_temp.h src/base/color.h
+          rm src/base/color_patch.h
         fi
 
         # Заменяем ломающий constexpr на обычный константный const в файлах консоли движка
@@ -59,7 +68,6 @@ jobs:
 
     - name: Build Game
       run: |
-        mkdir -p build/Release
         cd build
         cmake --build . --config Release
 
