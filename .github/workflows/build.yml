@@ -25,9 +25,17 @@ jobs:
         sed -i 's/message(FATAL_ERROR "${FILE_DIR} does not contain/message(STATUS "Skip/g' CMakeLists.txt
         
         # ХИРУРГИЧЕСКОЕ ИСПРАВЛЕНИЕ КОДА ЦВЕТА:
-        # Вживляем в начало файла color.h константные версии функций minimum и maximum, чтобы constexpr работал идеально
+        # Вживляем версии функций минимум/максимум как для двух, так и для ТРЁХ аргументов сразу!
         if [ -f src/base/color.h ]; then
-          sed -i '1i template<typename T> constexpr T minimum(T a, T b) { return a < b ? a : b; }\ntemplate<typename T> constexpr T maximum(T a, T b) { return a > b ? a : b; }' src/base/color.h
+          cat << 'EOF' > src/base/color_patch.h
+          template<typename T> constexpr T minimum(T a, T b) { return a < b ? a : b; }
+          template<typename T> constexpr T minimum(T a, T b, T c) { return minimum(minimum(a, b), c); }
+          template<typename T> constexpr T maximum(T a, T b) { return a > b ? a : b; }
+          template<typename T> constexpr T maximum(T a, T b, T c) { return maximum(maximum(a, b), c); }
+        EOF
+          cat src/base/color_patch.h src/base/color.h > src/base/color_temp.h
+          mv src/base/color_temp.h src/base/color.h
+          rm src/base/color_patch.h
         fi
 
         # Заменяем ломающий constexpr на обычный константный const в файлах консоли движка
@@ -56,6 +64,7 @@ jobs:
 
     - name: Build Game
       run: |
+        mkdir -p build/Release
         cd build
         cmake --build . --config Release
 
