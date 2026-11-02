@@ -38,7 +38,9 @@ jobs:
         sed -i 's/option(VULKAN ".*" ON)/option(VULKAN "Disable Vulkan" OFF)/g' CMakeLists.txt
         sed -i 's/set(VULKAN ON)/set(VULKAN OFF)/g' CMakeLists.txt
         
-        # Полностью отключаем интеграцию с Rust/Cargo
+        # УЛЬТИМАТИВНОЕ УДАЛЕНИЕ RUST/CARGO: Вырезаем подключение подпроектов rust-bridge под корень
+        sed -i '/rust-bridge/d' CMakeLists.txt
+        sed -i '/rust_engine/d' CMakeLists.txt
         sed -i 's/cargo_build/# cargo_build/g' CMakeLists.txt
         sed -i 's/Cargo.toml/# Cargo.toml/g' CMakeLists.txt
         
