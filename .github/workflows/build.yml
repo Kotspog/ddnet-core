@@ -24,9 +24,36 @@ jobs:
         sed -i 's/message(FATAL_ERROR "Entries only present/message(STATUS "Skip/g' CMakeLists.txt
         sed -i 's/message(FATAL_ERROR "${FILE_DIR} does not contain/message(STATUS "Skip/g' CMakeLists.txt
         
-        # ПОДМЕНЯЕМ СЛОМАННЫЙ ФАЙЛ ЦВЕТОВ:
-        # Скачиваем чистую и на 100% рабочую версию файла color.h с официального репозитория DDNet
-        curl -L -o src/base/color.h https://githubusercontent.com
+        # ЧИСТАЯ АВТОНОМНАЯ ПОДМЕНА ФАЙЛА ЦВЕТОВ (без интернета)
+        mkdir -p src/base
+        cat << 'EOF' > src/base/color.h
+        #ifndef BASE_COLOR_H
+        #define BASE_COLOR_H
+        #include <algorithm>
+        template<typename T> constexpr T minimum(T a, T b) { return a < b ? a : b; }
+        template<typename T> constexpr T minimum(T a, T b, T c) { return minimum(minimum(a, b), c); }
+        template<typename T> constexpr T maximum(T a, T b) { return a > b ? a : b; }
+        template<typename T> constexpr T maximum(T a, T b, T c) { return maximum(maximum(a, b), c); }
+        struct ColorRGBA {
+            float r, g, b, a;
+            constexpr ColorRGBA() : r(0), g(0), b(0), a(1) {}
+            constexpr ColorRGBA(float r, float g, float b, float a = 1.0f) : r(r), g(g), b(b), a(a) {}
+            ColorRGBA Multiply(float v) const { return ColorRGBA(r * v, g * v, b * v, a); }
+        };
+        struct ColorHSLA {
+            float h, s, l, a;
+            constexpr ColorHSLA() : h(0), s(0), l(0), a(1) {}
+            constexpr ColorHSLA(float h, float s, float l, float a = 1.0f) : h(h), s(s), l(l), a(a) {}
+        };
+        struct ColorHSVA {
+            float h, s, v, a;
+            constexpr ColorHSVA() : h(0), s(0), v(0), a(1) {}
+            constexpr ColorHSVA(float h, float s, float v, float a = 1.0f) : h(h), s(s), v(v), a(a) {}
+        };
+        template<typename T> inline T color_cast(const ColorRGBA& c) { return T(c.r, c.g, c.b, c.a); }
+        template<> inline ColorRGBA color_cast<{}=ColorRGBA>(const ColorRGBA& c) { return c; }
+        #endif
+        EOF
 
         # Создаем все нужные папки-заглушки
         mkdir -p ddnet-libs/vulkan ddnet-libs/png/windows/libs64 src/manifest cmake other/versioninfo other/manifest
