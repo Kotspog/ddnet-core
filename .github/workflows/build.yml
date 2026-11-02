@@ -14,24 +14,19 @@ jobs:
         submodules: recursive
 
     - name: Surgical Clean CMake Config
-      shell: bash
+      shell: powershell
       run: |
-        # Скачиваем чистый официальный файл конфигурации DDNet через стабильный wget
-        wget -O CMakeLists.txt https://githubusercontent.com
+        # Скачиваем чистый официальный файл конфигурации DDNet через встроенный PowerShell
+        Invoke-WebRequest -Uri "https://githubusercontent.com" -OutFile "CMakeLists.txt"
         
         # Отключаем в нем падение из-за проверки версии
-        sed -i 's/message(FATAL_ERROR "Couldn\x27t parse version from src\/game\/version.h")/message(STATUS "Skipping version check")/' CMakeLists.txt
-        sed -i 's/message(SEND_ERROR "Couldn\x27t parse version from src\/game\/version.h")/message(STATUS "Skipping version check")/' CMakeLists.txt
+        (Get-Content CMakeLists.txt) -replace 'message\(FATAL_ERROR "Couldn\\x27t parse version from src\/game\/version.h"\)', 'message(STATUS "Skipping version check")' | Set-Content CMakeLists.txt
+        (Get-Content CMakeLists.txt) -replace 'message\(SEND_ERROR "Couldn\\x27t parse version from src\/game\/version.h"\)', 'message(STATUS "Skipping version check")' | Set-Content CMakeLists.txt
         
         # Создаем пустые файлы-заглушки для недостающих компонентов
-        mkdir -p src/game cmake other/versioninfo other/manifest src/manifest
-        echo '#define GAME_VERSION "0.0.1"' > src/game/version.h
-        echo '#define GAME_RELEASE_VERSION "0.0.1"' >> src/game/version.h
-        touch cmake/checksummed_extra.txt
-        touch other/versioninfo/versioninfo.rc.in
-        touch other/manifest/client.manifest.in
-        touch src/manifest/client.manifest
-        touch cmake/Download_GTest_CMakeLists.txt.in
+        New-Item -ItemType Directory -Force -Path src/game, cmake, other/versioninfo, other/manifest, src/manifest
+        Set-Content -Path src/game/version.h -Value "#define GAME_VERSION `"0.0.1`"`n#define GAME_RELEASE_VERSION `"0.0.1`""
+        New-Item -ItemType File -Force -Path cmake/checksummed_extra.txt, other/versioninfo/versioninfo.rc.in, other/manifest/client.manifest.in, src/manifest/client.manifest, cmake/Download_GTest_CMakeLists.txt.in
 
     - name: Install Libraries via Vcpkg
       run: |
@@ -53,4 +48,3 @@ jobs:
       with:
         name: KernelNet-Windows-Build
         path: build/Release/
-
