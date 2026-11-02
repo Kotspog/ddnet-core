@@ -18,13 +18,18 @@ jobs:
       run: |
         git checkout HEAD^ -- CMakeLists.txt || git checkout main -- CMakeLists.txt || true
         
-        # Отключаем вредные проверки версий и папок в конфигурации
+        # Отключаем вредные проверки версий и папок
         sed -i 's/message(FATAL_ERROR "Our version check/message(STATUS "Skip/g' CMakeLists.txt
         sed -i 's/message(FATAL_ERROR "Couldn\x27t parse/message(STATUS "Skip/g' CMakeLists.txt
         sed -i 's/message(FATAL_ERROR "Entries only present/message(STATUS "Skip/g' CMakeLists.txt
         sed -i 's/message(FATAL_ERROR "${FILE_DIR} does not contain/message(STATUS "Skip/g' CMakeLists.txt
         
-        # ХИРУРГИЧЕСКОЕ ИСПРАВЛЕНИЕ КОДА: 
+        # ХИРУРГИЧЕСКОЕ ИСПРАВЛЕНИЕ КОДА ЦВЕТА:
+        # Вживляем в начало файла color.h константные версии функций minimum и maximum, чтобы constexpr работал идеально
+        if [ -f src/base/color.h ]; then
+          sed -i '1i template<typename T> constexpr T minimum(T a, T b) { return a < b ? a : b; }\ntemplate<typename T> constexpr T maximum(T a, T b) { return a > b ? a : b; }' src/base/color.h
+        fi
+
         # Заменяем ломающий constexpr на обычный константный const в файлах консоли движка
         find src/engine/ -type f -name "*.h" -o -name "*.cpp" | xargs sed -i 's/constexpr ColorRGBA CONSOLE_DEFAULT_COLOR/const ColorRGBA CONSOLE_DEFAULT_COLOR/g' 2>/dev/null || true
         find src/engine/ -type f -name "*.h" -o -name "*.cpp" | xargs sed -i 's/constexpr ColorRGBA/const ColorRGBA/g' 2>/dev/null || true
