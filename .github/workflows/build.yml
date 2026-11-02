@@ -24,10 +24,14 @@ jobs:
         sed -i 's/message(FATAL_ERROR "Entries only present/message(STATUS "Skip/g' CMakeLists.txt
         sed -i 's/message(FATAL_ERROR "${FILE_DIR} does not contain/message(STATUS "Skip/g' CMakeLists.txt
         
-        # ТОТАЛЬНОЕ И БЕЗОПАСНОЕ УНИЧТОЖЕНИЕ ОШИБОК В color.h:
+        # ТОЧЕЧНОЕ ИСПРАВЛЕНИЕ ФАЙЛА ЦВЕТОВ:
         if [ -f src/base/color.h ]; then
-          # 1. Заменяем абсолютно все constexpr на обычные inline-команды, чтобы компилятор не придирался
-          sed -i 's/constexpr //g' src/base/color.h
+          # 1. Заменяем constexpr на inline ТОЛЬКО в функциях (Multiply, color_cast и т.д.), переменные не трогаем!
+          sed -i 's/constexpr ColorRGBA Multiply/inline ColorRGBA Multiply/g' src/base/color.h
+          sed -i 's/constexpr typename color_traits/inline typename color_traits/g' src/base/color.h
+          sed -i 's/constexpr typename color_cast_impl/inline typename color_cast_impl/g' src/base/color.h
+          sed -i 's/constexpr ColorRGBA color_cast/inline ColorRGBA color_cast/g' src/base/color.h
+          sed -i 's/constexpr bool operator/inline bool operator/g' src/base/color.h
           
           # 2. Добавляем в самый верх правильные математические функции для 2 и 3 чисел
           cat << 'EOF' > src/base/color_patch.h
