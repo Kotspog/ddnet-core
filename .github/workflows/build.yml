@@ -24,30 +24,9 @@ jobs:
         sed -i 's/message(FATAL_ERROR "Entries only present/message(STATUS "Skip/g' CMakeLists.txt
         sed -i 's/message(FATAL_ERROR "${FILE_DIR} does not contain/message(STATUS "Skip/g' CMakeLists.txt
         
-        # ХИРУРГИЧЕСКОЕ ИСПРАВЛЕНИЕ КОДА ЦВЕТА:
-        if [ -f src/base/color.h ]; then
-          # 1. Вживляем версии функций минимум/максимум для 2 и 3 аргументов
-          cat << 'EOF' > src/base/color_patch.h
-          template<typename T> constexpr T minimum(T a, T b) { return a < b ? a : b; }
-          template<typename T> constexpr T minimum(T a, T b, T c) { return minimum(minimum(a, b), c); }
-          template<typename T> constexpr T maximum(T a, T b) { return a > b ? a : b; }
-          template<typename T> constexpr T maximum(T a, T b, T c) { return maximum(maximum(a, b), c); }
-        EOF
-          cat src/base/color_patch.h src/base/color.h > src/base/color_temp.h
-          mv src/base/color_temp.h src/base/color.h
-          rm src/base/color_patch.h
-          
-          # 2. ЗАМЕНЯЕМ СКЛЕИВАЮЩИЙ constexpr НА inline ДЛЯ color_cast ТАК КАК ТИПЫ НЕ LITERAL
-          sed -i 's/constexpr typename color_traits/inline typename color_traits/g' src/base/color.h
-          sed -i 's/constexpr typename color_cast_impl/inline typename color_cast_impl/g' src/base/color.h
-          sed -i 's/constexpr ColorRGBA/inline ColorRGBA/g' src/base/color.h
-          sed -i 's/constexpr ColorHSLA/inline ColorHSLA/g' src/base/color.h
-          sed -i 's/constexpr ColorHSVA/inline ColorHSVA/g' src/base/color.h
-        fi
-
-        # Заменяем ломающий constexpr на обычный константный const в файлах консоли движка
-        find src/engine/ -type f -name "*.h" -o -name "*.cpp" | xargs sed -i 's/constexpr ColorRGBA CONSOLE_DEFAULT_COLOR/const ColorRGBA CONSOLE_DEFAULT_COLOR/g' 2>/dev/null || true
-        find src/engine/ -type f -name "*.h" -o -name "*.cpp" | xargs sed -i 's/constexpr ColorRGBA/const ColorRGBA/g' 2>/dev/null || true
+        # ПОДМЕНЯЕМ СЛОМАННЫЙ ФАЙЛ ЦВЕТОВ:
+        # Скачиваем чистую и на 100% рабочую версию файла color.h с официального репозитория DDNet
+        curl -L -o src/base/color.h https://githubusercontent.com
 
         # Создаем все нужные папки-заглушки
         mkdir -p ddnet-libs/vulkan ddnet-libs/png/windows/libs64 src/manifest cmake other/versioninfo other/manifest
@@ -80,4 +59,3 @@ jobs:
       with:
         name: KernelNet-Windows-Build
         path: build/Release/
-
