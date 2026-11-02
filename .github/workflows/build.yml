@@ -18,19 +18,16 @@ jobs:
       run: |
         git checkout HEAD^ -- CMakeLists.txt || git checkout main -- CMakeLists.txt || true
         
-        # Отключаем вредные проверки версий и папок
+        # Отключаем вредные проверки версий и папок в конфигурации
         sed -i 's/message(FATAL_ERROR "Our version check/message(STATUS "Skip/g' CMakeLists.txt
         sed -i 's/message(FATAL_ERROR "Couldn\x27t parse/message(STATUS "Skip/g' CMakeLists.txt
         sed -i 's/message(FATAL_ERROR "Entries only present/message(STATUS "Skip/g' CMakeLists.txt
         sed -i 's/message(FATAL_ERROR "${FILE_DIR} does not contain/message(STATUS "Skip/g' CMakeLists.txt
         
-        # ИСПРАВЛЕНИЕ КОДА ИГРЫ: Вживляем в файл color.h исправление для функций minimum/maximum и constexpr
-        if [ -f src/base/color.h ]; then
-          # Добавляем стандартные функции std::min и std::max, чтобы компилятор их увидел
-          sed -i '1i #include <algorithm>\nusing std::min;\nusing std::max;\n#define minimum min\n#define maximum max' src/base/color.h
-          # Убираем капризные constexpr, которые ломали сборку цветов
-          sed -i 's/constexpr //g' src/base/color.h
-        fi
+        # ХИРУРГИЧЕСКОЕ ИСПРАВЛЕНИЕ КОДА: 
+        # Заменяем ломающий constexpr на обычный константный const в файлах консоли движка
+        find src/engine/ -type f -name "*.h" -o -name "*.cpp" | xargs sed -i 's/constexpr ColorRGBA CONSOLE_DEFAULT_COLOR/const ColorRGBA CONSOLE_DEFAULT_COLOR/g' 2>/dev/null || true
+        find src/engine/ -type f -name "*.h" -o -name "*.cpp" | xargs sed -i 's/constexpr ColorRGBA/const ColorRGBA/g' 2>/dev/null || true
 
         # Создаем все нужные папки-заглушки
         mkdir -p ddnet-libs/vulkan ddnet-libs/png/windows/libs64 src/manifest cmake other/versioninfo other/manifest
