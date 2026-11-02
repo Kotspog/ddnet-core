@@ -1,32 +1,33 @@
 #ifndef BASE_COLOR_H
 #define BASE_COLOR_H
 
+#include <memory>
 #include <algorithm>
 
-template<typename T> inline T minimum(T a, T b) { return a < b ? a : b; }
-template<typename T> inline T minimum(T a, T b, T c) { return minimum(minimum(a, b), c); }
-template<typename T> inline T maximum(T a, T b) { return a > b ? a : b; }
-template<typename T> inline T maximum(T a, T b, T c) { return maximum(maximum(a, b), c); }
+#ifndef minimum
+#define minimum(a,b) (((a)<(b))?(a):(b))
+#endif
+#ifndef maximum
+#define maximum(a,b) (((a)>(b))?(a):(b))
+#endif
 
 struct ColorRGBA
 {
 	float r, g, b, a;
 
+	ColorRGBA() : r(0), g(0), b(0), a(1) {}
 	ColorRGBA(float r, float g, float b, float a = 1.0f) : r(r), g(g), b(b), a(a) {}
 
-	ColorRGBA/float r, float g, float b, float a = 1.0f) : r(r), g(g), b(b), a(a) {}
-
-	inline ColorRGBA Multiply(float v) const { return ColorRGBA(r * v, g * v, b * v, a); }
+	ColorRGBA Multiply(float v) const { return ColorRGBA(r * v, g * v, b * v, a); }
 
 	bool operator==(const ColorRGBA& other) const { return r == other.r && g == other.g && b == other.b && a == other.a; }
 	bool operator!=(const ColorRGBA& other) const { return !(*this == other); }
 
-	// Кастомные константы цветов KernelNet
+	// Кастомные цвета KernelNet
 	static const ColorRGBA DARKEST_LGT;
 	static const ColorRGBA DARKEST_LGT7;
 };
 
-// Заглушки для статических членов, чтобы компилятор их нашел
 inline const ColorRGBA ColorRGBA::DARKEST_LGT = ColorRGBA(0.05f, 0.05f, 0.05f, 1.0f);
 inline const ColorRGBA ColorRGBA::DARKEST_LGT7 = ColorRGBA(0.02f, 0.02f, 0.02f, 1.0f);
 
